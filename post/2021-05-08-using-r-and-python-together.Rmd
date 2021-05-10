@@ -40,6 +40,7 @@ cat(c(project,py$project))
 And you get the same output, pretty cool!
 
 ![](/img/reticulated_python.png)
+**Image retrieved from https://rstudio.github.io/reticulate/**
 
 
 
