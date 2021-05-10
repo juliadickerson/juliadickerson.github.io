@@ -6,34 +6,36 @@
     <description>Recent content on Julia Dickerson</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Tue, 01 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 08 May 2021 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Project 1</title>
+      <title>Reticulate; Using R and Python Together!</title>
+      <link>/post/2021/05/08/using-r-and-python-together/</link>
+      <pubDate>Sat, 08 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>/post/2021/05/08/using-r-and-python-together/</guid>
+      <description>There is a lot of debate on whether R studio or Python is better, but why not get the best of both worlds and use both together?
+Reticulate is a handy tool that can translate the data type from one environment to another environment for a different data type. For instance, R to python or vice versa.
+So let’s get an example of reticulate at work!
+here’s how it works: You first download the library reticulate and then insert your code into an R chunk.</description>
+    </item>
+    
+    <item>
+      <title>Project 1: Exploratory Data Analysis</title>
       <link>/project/project1/</link>
-      <pubDate>Tue, 01 Dec 2020 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/project/project1/</guid>
-      <description> Test Project 1  </description>
+      <description>##Julia Dickerson ##jed3458
+Data Wrangling and Data Exploration library(tidyverse) covid &amp;lt;- read.csv(&amp;quot;~/global_covid19_mortality_rates.csv&amp;quot;, header = TRUE) pop &amp;lt;- read.csv(&amp;quot;~/population_by_country_2020.csv&amp;quot;, header = TRUE)  Introduction  Write a narrative introductory paragraph or two describing the datasets you have chosen, the variables they contain, how they were acquired, and why they are interesting to you. Expand on potential associations you may expect, if any.  For this project I chose two datasets, the first had information based off of COVID19 statistics that were found in 2020 grouped by country.</description>
     </item>
     
     <item>
-      <title>Project 2</title>
+      <title>Project 2: Modeling, Testing, and Predicting</title>
       <link>/project/project2/</link>
-      <pubDate>Tue, 01 Dec 2020 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/project/project2/</guid>
-      <description> Test Project 2  </description>
-    </item>
-    
-    <item>
-      <title>Hello R Markdown</title>
-      <link>/post/2015/07/23/hello-r-markdown/</link>
-      <pubDate>Thu, 23 Jul 2015 21:13:14 -0500</pubDate>
-      
-      <guid>/post/2015/07/23/hello-r-markdown/</guid>
-      <description>R Markdown This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
-You can embed an R code chunk like this:
-summary(cars) ## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 26.00 ## Median :15.0 Median : 36.00 ## Mean :15.4 Mean : 42.98 ## 3rd Qu.</description>
+      <description>Modeling Introduction: library(tidyverse) heart &amp;lt;- read.csv(&amp;quot;heart.csv&amp;quot;) dim(heart) ## [1] 303 14 df=subset(heart, select = -c(slp, caa, output, thall)) dim(df) ## [1] 303 10 The dataset that I have chosen is the heart health condition of a subset of patients. The variables are age, sex, cp, trtbps, chol, fbs, restecg, thalachh, exng, and oldpeak. The age represents the age of the patient, the gender represents either 1 or 0, cp represents the chest pain (1=typical angina, 2=atypical angina, 3=non-anginal pain, and 4=asymptomatic), trtbps represents the resting blood pressure in mmHg, chol represents the cholesterol level in mg/dl, fbs represents fasting blood pressure (whether it is over 120 mg/dl, 1= true, 0=false), restecg represents resting electrocardiograph result (0=normal, 1= abnormal ST-T wave abnormality, 2= showing left ventricle hypertrophy), thalachh represents maximum heart rate achieved, exng represents the exercised induced angina (1=True, 0=False), and the oldpeak represents the previous peak.</description>
     </item>
     
     <item>

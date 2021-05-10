@@ -7,7 +7,7 @@
     <meta name="author" content="Julia Dickerson" />
     
     <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
-    <title>Project 1</title>
+    <title>Project 1: Exploratory Data Analysis</title>
     <meta name="generator" content="Hugo 0.83.1" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="../../css/main.css" />
@@ -54,13 +54,13 @@
       <div class="container">
         <div class="blog-post">
           <h3>
-            <strong><a href="../../project/project1/">Project 1</a></strong>
+            <strong><a href="../../project/project1/">Project 1: Exploratory Data Analysis</a></strong>
           </h3>
         </div>
  
 <div class="blog-title">
           <h4>
-         December 1, 2020 
+         January 1, 0001 
             &nbsp;&nbsp;
             
           </h4>
@@ -72,8 +72,394 @@
               
 
 
-<div id="test-project-1" class="section level2">
-<h2>Test Project 1</h2>
+<p>##Julia Dickerson
+##jed3458</p>
+<div id="data-wrangling-and-data-exploration" class="section level2">
+<h2>Data Wrangling and Data Exploration</h2>
+<pre class="r"><code>library(tidyverse)
+covid &lt;- read.csv(&quot;~/global_covid19_mortality_rates.csv&quot;, header = TRUE)
+pop &lt;- read.csv(&quot;~/population_by_country_2020.csv&quot;, header = TRUE)</code></pre>
+</div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<ul>
+<li>Write a narrative introductory paragraph or two describing the datasets you have chosen, the variables they contain, how they were acquired, and why they are interesting to you. Expand on potential associations you may expect, if any.</li>
+</ul>
+<p><strong>For this project I chose two datasets, the first had information based off of COVID19 statistics that were found in 2020 grouped by country. The other dataset that I used was a dataset that had population information for each country. The COVID dataset was acquired by aggregating three datasets together that contained information on COVID19. The population dataset was downloaded from a site called Worldometer, which provides information on all of the countries in the world. Additionally, they used web scraping techniques to create and tidy the dataset.</strong></p>
+<p><strong>The variables within the COVID19 dataset are Deaths from COVID, Confirmed Cases, Mortality Ratio, country, country code, latitude and longitude. The variables that were found in the population dataset were the population of each country, the yearly change, the net change, the density of population per km, the land area, the net migrants, the fertilization rate, the median age, the urban population, and the world share.</strong></p>
+<p><strong>The reason that these datasets stood out to me is because it seemed to me that population would have a big impact on how COVID would spread in a country. The variables like Urban population and density of the population seemed as though they would have a positive correlation with COVID cases and deaths. The reason for this is because the more people there are and the more closely they are associated with each other point toward increased COVID cases. Another association I would predict would be that the smaller the population, the less cases there would be because there are simply less people and less chances of transmission. Another association that could occur would be that the more migrants a country has the more likely it is that COVID could be brought into a country.</strong></p>
+</div>
+<div id="part-2-joining-datasets" class="section level2">
+<h2>Part 2: Joining Datasets</h2>
+<pre class="r"><code>pop2 &lt;- pop %&gt;% rename(Country = Country..or.dependency.)
+fullcovid &lt;- right_join(pop2, covid, ID = &quot;Country&quot;)
+realcovid &lt;- fullcovid %&gt;% na.omit()
+uncommon &lt;- anti_join(pop2, covid)
+glimpse(uncommon)</code></pre>
+<pre><code>## Rows: 64
+## Columns: 11
+## $ Country           &lt;fct&gt; DR Congo, United Kingdom, Myanmar, Côte d&#39;Ivoire, N…
+## $ Population..2020. &lt;int&gt; 90003954, 67948282, 54473253, 26486282, 25798588, 1…
+## $ Yearly.Change     &lt;fct&gt; 3.19 %, 0.53 %, 0.67 %, 2.57 %, 0.44 %, 1.19 %, 0.1…
+## $ Net.Change        &lt;int&gt; 2770836, 355839, 364380, 661730, 112655, 131612, 19…
+## $ Density..P.Km..   &lt;int&gt; 40, 281, 83, 83, 214, 18, 139, 13, 16, 847, 323, 83…
+## $ Land.Area..Km..   &lt;int&gt; 2267050, 241930, 653290, 318000, 120410, 610952, 77…
+## $ Migrants..net.    &lt;dbl&gt; 23861, 260650, -163313, -8000, -5403, -174200, 2201…
+## $ Fert..Rate        &lt;fct&gt; 6.0, 1.8, 2.2, 4.7, 1.9, 4.7, 1.6, 2.8, 4.5, 3.7, 1…
+## $ Med..Age          &lt;fct&gt; 17, 40, 29, 19, 35, 19, 43, 27, 19, 21, 44, 39, 21,…
+## $ Urban.Pop..       &lt;fct&gt; 46 %, 83 %, 31 %, 51 %, 63 %, 25 %, 74 %, 53 %, 70 …
+## $ World.Share       &lt;fct&gt; 1.15 %, 0.87 %, 0.70 %, 0.34 %, 0.33 %, 0.14 %, 0.1…</code></pre>
+<pre class="r"><code>dropped &lt;- uncommon %&gt;% select(Country)
+glimpse(dropped)</code></pre>
+<pre><code>## Rows: 64
+## Columns: 1
+## $ Country &lt;fct&gt; DR Congo, United Kingdom, Myanmar, Côte d&#39;Ivoire, North Korea…</code></pre>
+<p><strong>In order to join the two datasets I chose to do a right_join because I wanted to keep all of the variables in the COVID dataset and only bring in the information from the population dataset that would correspond to the pre-existing variables in the COVID dataset. More specifically, the population dataset had data on different territories as well as countries, but I only wanted to focus on countries. So, the data that was dropped was the territories in the population dataset as well as countries that did not have the relevant population statistics. This turned out to be 74 variables, including North Korea, Puerto Rico, ect. I also joined the two datasets by country as this was their only variable in common. I also conducted an anti_join to vizualize the countries and territories that were dropped. The issue with these variables being dropped is that it may skew the data to come to one conclusion, like that there is no correlation between variabes, but witht the extra information it could change this.</strong></p>
+</div>
+<div id="part-3a-using-the-6-dplyr-functions" class="section level2">
+<h2>Part 3a: Using the 6 dplyr functions</h2>
+<pre class="r"><code>realcovid %&gt;% group_by(Med..Age) %&gt;% select(Mortality.Ratio) %&gt;% 
+    arrange(desc(Med..Age))</code></pre>
+<pre><code>## # A tibble: 166 x 2
+## # Groups:   Med..Age [34]
+##    Med..Age Mortality.Ratio
+##    &lt;fct&gt;              &lt;dbl&gt;
+##  1 48                  1.91
+##  2 47                 11.8 
+##  3 46                  3.38
+##  4 46                  2.19
+##  5 46                  2.74
+##  6 45                  4.47
+##  7 45                  2.06
+##  8 45                  4.04
+##  9 45                  2.21
+## 10 45                  3.05
+## # … with 156 more rows</code></pre>
+<pre class="r"><code>realcovid %&gt;% group_by(Med..Age) %&gt;% select(Mortality.Ratio) %&gt;% 
+    arrange(desc(Mortality.Ratio))</code></pre>
+<pre><code>## # A tibble: 166 x 2
+## # Groups:   Med..Age [34]
+##    Med..Age Mortality.Ratio
+##    &lt;fct&gt;              &lt;dbl&gt;
+##  1 20                 28.9 
+##  2 47                 11.8 
+##  3 29                 10.6 
+##  4 28                 10   
+##  5 42                  9.32
+##  6 28                  8.6 
+##  7 17                  7.04
+##  8 41                  6.55
+##  9 28                  6.25
+## 10 41                  6.2 
+## # … with 156 more rows</code></pre>
+<pre class="r"><code>realcovid %&gt;% group_by(Country) %&gt;% summarise(Confirmed) %&gt;% 
+    arrange(desc(Confirmed))</code></pre>
+<pre><code>## # A tibble: 166 x 2
+##    Country       Confirmed
+##    &lt;fct&gt;             &lt;dbl&gt;
+##  1 United States   6933548
+##  2 India           5646010
+##  3 Brazil          4591364
+##  4 Russia          1117487
+##  5 Colombia         784268
+##  6 Peru             776546
+##  7 Mexico           710049
+##  8 Spain            693556
+##  9 South Africa     665188
+## 10 Argentina        664799
+## # … with 156 more rows</code></pre>
+<pre class="r"><code>realcovid %&gt;% group_by(Country) %&gt;% summarise(Density..P.Km..) %&gt;% 
+    arrange(desc(Density..P.Km..))</code></pre>
+<pre><code>## # A tibble: 166 x 2
+##    Country    Density..P.Km..
+##    &lt;fct&gt;                &lt;int&gt;
+##  1 Singapore             8358
+##  2 Hong Kong             7140
+##  3 Bahrain               2239
+##  4 Maldives              1802
+##  5 Malta                 1380
+##  6 Bangladesh            1265
+##  7 Taiwan                 673
+##  8 Barbados               668
+##  9 Lebanon                667
+## 10 Mauritius              626
+## # … with 156 more rows</code></pre>
+<pre class="r"><code>realcovid %&gt;% filter(Country == &quot;Singapore&quot;) %&gt;% select(Confirmed, 
+    Population..2020.)</code></pre>
+<pre><code>##   Confirmed Population..2020.
+## 1     57639           5858322</code></pre>
+<pre class="r"><code>57639/5858322</code></pre>
+<pre><code>## [1] 0.009838824</code></pre>
+<pre class="r"><code>realcovid %&gt;% filter(Country == &quot;United States&quot;) %&gt;% select(Confirmed, 
+    Mortality.Ratio)</code></pre>
+<pre><code>##   Confirmed Mortality.Ratio
+## 1   6933548            2.91</code></pre>
+<pre class="r"><code>mutated &lt;- realcovid %&gt;% mutate(propotion_death = Population..2020. * 
+    Mortality.Ratio/100)
+glimpse(mutated)</code></pre>
+<pre><code>## Rows: 166
+## Columns: 19
+## $ Country           &lt;fct&gt; China, India, United States, Indonesia, Pakistan, B…
+## $ Population..2020. &lt;int&gt; 1440297825, 1382345085, 331341050, 274021604, 22161…
+## $ Yearly.Change     &lt;fct&gt; 0.39 %, 0.99 %, 0.59 %, 1.07 %, 2.00 %, 0.72 %, 2.5…
+## $ Net.Change        &lt;int&gt; 5540090, 13586631, 1937734, 2898047, 4327022, 15098…
+## $ Density..P.Km..   &lt;int&gt; 153, 464, 36, 151, 287, 25, 226, 1265, 9, 66, 347, …
+## $ Land.Area..Km..   &lt;int&gt; 9388211, 2973190, 9147420, 1811570, 770880, 8358140…
+## $ Migrants..net.    &lt;dbl&gt; -348399, -532687, 954806, -98955, -233379, 21200, -…
+## $ Fert..Rate        &lt;fct&gt; 1.7, 2.2, 1.8, 2.3, 3.6, 1.7, 5.4, 2.1, 1.8, 2.1, 1…
+## $ Med..Age          &lt;fct&gt; 38, 28, 38, 30, 23, 33, 18, 28, 40, 29, 48, 19, 26,…
+## $ Urban.Pop..       &lt;fct&gt; 61 %, 35 %, 83 %, 56 %, 35 %, 88 %, 52 %, 39 %, 74 …
+## $ World.Share       &lt;fct&gt; 18.47 %, 17.70 %, 4.25 %, 3.51 %, 2.83 %, 2.73 %, 2…
+## $ X                 &lt;int&gt; 34, 72, 167, 73, 121, 23, 118, 13, 131, 105, 80, 52…
+## $ Confirmed         &lt;dbl&gt; 85314, 5646010, 6933548, 257388, 308217, 4591364, 5…
+## $ Deaths            &lt;dbl&gt; 4634, 90020, 201884, 9977, 6437, 138105, 1102, 5044…
+## $ Mortality.Ratio   &lt;dbl&gt; 5.43, 1.59, 2.91, 3.88, 2.09, 3.01, 1.91, 1.43, 1.7…
+## $ Latitude          &lt;dbl&gt; 35.861660, 20.593684, 37.090240, -0.789275, 30.3753…
+## $ Longitude         &lt;dbl&gt; 104.195397, 78.962880, -95.712891, 113.921327, 69.3…
+## $ Country_Code      &lt;fct&gt; CN, IN, US, ID, PK, BR, NG, BD, RU, MX, JP, ET, PH,…
+## $ propotion_death   &lt;dbl&gt; 78208171.9, 21979286.9, 9642024.6, 10632038.2, 4631…</code></pre>
+<p><strong>When using the dplyr functions, I first grouped by median age and then selected for Mortality Ratio. I did this with the idea in mind that countries with older populations would have higher mortality rates, however when looking at the data generated. This was not the case. When it was arranged by descending median age it was found that all of the highest ages had relatively low mortality rates. This indicates that another factor may be in play. Also, when arranged by descending mortality ratio, it was found that although there were older populations with high mortality rates, there were also younger populations who had just as high if not higher mortality rates.</strong></p>
+<p><strong>I then grouped by country and arranged the data by descending Confirmed cases. I did this in order to visualize what countries were leading in COVID cases. The country with the most cases was the United States, and the next highest was India.I was thinking that the countries with the highest number of cases would also have the highest population density. I also summarized the data by descending population density when grouped by country and found that Singapore had the highest density. Then I filtered the data to only include Signapore and selected the confirmed cases and the population. I found that only about 0.9% of the population of Singapore was confirmed to have COVID even with the highest population density. Lastly, I looked back at the US by filtering the data and selecting the Confirmed cases and the mortality rate. Because the US has a high Confirmed cases variable, it would have made sense if the mortality rate was also high, but it was actually only about 2.91%. This may be due to other factors like quality of healthcare.</strong></p>
+<p><strong>The last function I did was to add a column to the dataset by using mutate to add a column that multipled the population of the countries by the mortality rate. I did this in order to showcase that if everyone in the country got COVID, then this would be the expected deaths due to the infection.</strong></p>
+</div>
+<div id="part-3b-creating-summary-statistics-using-group_by-and-summarize" class="section level2">
+<h2>Part 3b: Creating Summary Statistics Using group_by and summarize</h2>
+<pre class="r"><code>fakecovid &lt;- fullcovid %&gt;% na.omit()
+fakecovid$Population..2020.[realcovid$Population..2020. &lt;= 19999999] &lt;- &quot;Small&quot;
+fakecovid$Population..2020.[realcovid$Population..2020. &gt;= 2e+07] &lt;- &quot;Large&quot;
+fakecovid %&gt;% group_by(Population..2020. == &quot;Small&quot;) %&gt;% summarise(mean(Mortality.Ratio))</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   `Population..2020. == &quot;Small&quot;` `mean(Mortality.Ratio)`
+##   &lt;lgl&gt;                                            &lt;dbl&gt;
+## 1 FALSE                                             3.52
+## 2 TRUE                                              2.24</code></pre>
+<pre class="r"><code>fakecovid %&gt;% group_by(Population..2020. == &quot;Large&quot;) %&gt;% summarise(mean(Confirmed))</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   `Population..2020. == &quot;Large&quot;` `mean(Confirmed)`
+##   &lt;lgl&gt;                                      &lt;dbl&gt;
+## 1 FALSE                                     31144.
+## 2 TRUE                                     504137.</code></pre>
+<pre class="r"><code>fakecovid %&gt;% group_by(Population..2020. == &quot;Large&quot;) %&gt;% summarize(mean(as.numeric(Med..Age)))</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   `Population..2020. == &quot;Large&quot;` `mean(as.numeric(Med..Age))`
+##   &lt;lgl&gt;                                                 &lt;dbl&gt;
+## 1 FALSE                                                  17.2
+## 2 TRUE                                                   15.6</code></pre>
+<pre class="r"><code>fakecovid %&gt;% group_by(Population..2020. == &quot;Large&quot;) %&gt;% summarize(mean(as.numeric(Urban.Pop..)))</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   `Population..2020. == &quot;Large&quot;` `mean(as.numeric(Urban.Pop..))`
+##   &lt;lgl&gt;                                                    &lt;dbl&gt;
+## 1 FALSE                                                     46.0
+## 2 TRUE                                                      43.4</code></pre>
+<pre class="r"><code>fakecovid %&gt;% summarise(max(Deaths))</code></pre>
+<pre><code>##   max(Deaths)
+## 1      201884</code></pre>
+<pre class="r"><code>fakecovid %&gt;% summarise(min(Deaths))</code></pre>
+<pre><code>##   min(Deaths)
+## 1           0</code></pre>
+<pre class="r"><code>fakecovid %&gt;% group_by(Country) %&gt;% filter(Deaths == &quot;0&quot;) %&gt;% 
+    summarise(Deaths, Population..2020.)</code></pre>
+<pre><code>## # A tibble: 9 x 3
+##   Country     Deaths Population..2020.
+##   &lt;fct&gt;        &lt;dbl&gt; &lt;chr&gt;            
+## 1 Bhutan           0 Small            
+## 2 Cambodia         0 Small            
+## 3 Eritrea          0 Small            
+## 4 Grenada          0 Small            
+## 5 Laos             0 Small            
+## 6 Mongolia         0 Small            
+## 7 Saint Lucia      0 Small            
+## 8 Seychelles       0 Small            
+## 9 Timor-Leste      0 Small</code></pre>
+<p><strong>Here, I dichotamized the Population variable to make it categorical. Small countries were defined as having a population under 20 million and large countries were defined as having a population of over 20 million. I then used summarize and group to find the mean, sd, min, max of some of the variables just for better visualization. With this, I found that there were countries that had zero deaths from COVID (the min was 0 found by the summarize function), and so then I filtered the data for countries that had zero deaths, and found that there were 9 countries that had not had any deaths from COVID; Bhatan, Cambodia, Eritrea, Grenada, Laos, Mongolia, St. Lucia, Seychelles, and Timor-Leste. Interestingly, they were all small countries.</strong></p>
+<p>##Summary Statistic Tables</p>
+<pre class="r"><code>fakecovid %&gt;% summarize_if(is.numeric, list(mean = mean, sd = sd, 
+    min = min, max = max, n_distinct = n_distinct))</code></pre>
+<pre><code>##   Net.Change_mean Density..P.Km.._mean Land.Area..Km.._mean Migrants..net._mean
+## 1        461107.2             257.4759             749056.7            1078.964
+##     X_mean Confirmed_mean Deaths_mean Mortality.Ratio_mean Latitude_mean
+## 1 87.51807       187858.5    5603.476             2.667892      19.72125
+##   Longitude_mean Net.Change_sd Density..P.Km.._sd Land.Area..Km.._sd
+## 1        19.5433       1307960           879.5998            1967662
+##   Migrants..net._sd     X_sd Confirmed_sd Deaths_sd Mortality.Ratio_sd
+## 1          132665.1 51.40047     783952.3  21441.21           2.911636
+##   Latitude_sd Longitude_sd Net.Change_min Density..P.Km.._min
+## 1    23.87315     59.75361        -383840                   2
+##   Land.Area..Km.._min Migrants..net._min X_min Confirmed_min Deaths_min
+## 1                 300            -653249     0            10          0
+##   Mortality.Ratio_min Latitude_min Longitude_min Net.Change_max
+## 1                   0    -40.90056     -106.3468       13586631
+##   Density..P.Km.._max Land.Area..Km.._max Migrants..net._max X_max
+## 1                8358            16376870             954806   175
+##   Confirmed_max Deaths_max Mortality.Ratio_max Latitude_max Longitude_max
+## 1       6933548     201884               28.88     64.96305      179.4144
+##   Net.Change_n_distinct Density..P.Km.._n_distinct Land.Area..Km.._n_distinct
+## 1                   166                        121                        166
+##   Migrants..net._n_distinct X_n_distinct Confirmed_n_distinct Deaths_n_distinct
+## 1                       135          166                  163               141
+##   Mortality.Ratio_n_distinct Latitude_n_distinct Longitude_n_distinct
+## 1                        137                 166                  166</code></pre>
+<pre class="r"><code>table1 &lt;- fakecovid %&gt;% summarize_if(is.numeric, list(mean = mean, 
+    sd = sd, min = min, max = max, n_distinct = n_distinct))
+print(table1)</code></pre>
+<pre><code>##   Net.Change_mean Density..P.Km.._mean Land.Area..Km.._mean Migrants..net._mean
+## 1        461107.2             257.4759             749056.7            1078.964
+##     X_mean Confirmed_mean Deaths_mean Mortality.Ratio_mean Latitude_mean
+## 1 87.51807       187858.5    5603.476             2.667892      19.72125
+##   Longitude_mean Net.Change_sd Density..P.Km.._sd Land.Area..Km.._sd
+## 1        19.5433       1307960           879.5998            1967662
+##   Migrants..net._sd     X_sd Confirmed_sd Deaths_sd Mortality.Ratio_sd
+## 1          132665.1 51.40047     783952.3  21441.21           2.911636
+##   Latitude_sd Longitude_sd Net.Change_min Density..P.Km.._min
+## 1    23.87315     59.75361        -383840                   2
+##   Land.Area..Km.._min Migrants..net._min X_min Confirmed_min Deaths_min
+## 1                 300            -653249     0            10          0
+##   Mortality.Ratio_min Latitude_min Longitude_min Net.Change_max
+## 1                   0    -40.90056     -106.3468       13586631
+##   Density..P.Km.._max Land.Area..Km.._max Migrants..net._max X_max
+## 1                8358            16376870             954806   175
+##   Confirmed_max Deaths_max Mortality.Ratio_max Latitude_max Longitude_max
+## 1       6933548     201884               28.88     64.96305      179.4144
+##   Net.Change_n_distinct Density..P.Km.._n_distinct Land.Area..Km.._n_distinct
+## 1                   166                        121                        166
+##   Migrants..net._n_distinct X_n_distinct Confirmed_n_distinct Deaths_n_distinct
+## 1                       135          166                  163               141
+##   Mortality.Ratio_n_distinct Latitude_n_distinct Longitude_n_distinct
+## 1                        137                 166                  166</code></pre>
+<pre class="r"><code>table2 &lt;- fakecovid %&gt;% group_by(Population..2020.) %&gt;% select(Density..P.Km.., 
+    Confirmed) %&gt;% summarise_if(is.numeric, list(mean = mean, 
+    sd = sd, min = min, max = max, n_distinct = n_distinct))
+print(table2)</code></pre>
+<pre><code>## # A tibble: 2 x 11
+##   Population..202… Density..P.Km..… Confirmed_mean Density..P.Km..… Confirmed_sd
+##   &lt;chr&gt;                       &lt;dbl&gt;          &lt;dbl&gt;            &lt;dbl&gt;        &lt;dbl&gt;
+## 1 Large                        152.        504137.             207.     1311103.
+## 2 Small                        310.         31144.            1064.       56615.
+## # … with 6 more variables: Density..P.Km.._min &lt;int&gt;, Confirmed_min &lt;dbl&gt;,
+## #   Density..P.Km.._max &lt;int&gt;, Confirmed_max &lt;dbl&gt;,
+## #   Density..P.Km.._n_distinct &lt;int&gt;, Confirmed_n_distinct &lt;int&gt;</code></pre>
+<p><strong>Here, I used the summarize_if function in order to group all of the numeric variables into a table, and then took the mean, standard deviation, minimum, maximum, and the distinct values in those variables. The Net change was 461107.2 meaning that on average each country is increasing/decreasing by this amount. It was also found that the average amount of migrants was 1078.964, meaning that there are 1078.964 different instances in which COVID could be introduced to a country. The confirmed cases mean was 187858.5. The mean of deaths was 5603.476. Comparing the last two statistics, it seems that the average resilience of the populations on average is pretty strong. The stadard deviations were as follows; 1307960 (net change), 879.5998 (Density of population), 1967662 (land area), 132665.1 (migrants), 783952.3 (Confirmed), 21441.21 (deaths), and 2.911636 (Mortality.Ratio). This is all just the variation from the average. The minimum Net change was -383840, meaning that the population is decreasing and the maximum was 13586631, which indicates a growing country, and a growing risk for COVID. The maximum confirmed cases was 6933548 and the maximum deaths was 201884, which indicates that the mortality rate is not high mostly. However, the maximum mortality rate was found to be 28.88%, which shows that there are other factors other than population that affect the mortality rate that should be explored.</strong></p>
+<p><strong>In the second table, which was created by grouping by country size and summarizing the mean, sd, max, min, and n_distinct for density of population and confirmed cases. This was made in order to see if there was a correlation between the three factors. Large countries actually had a smaller mean density than did small countries, which makes sense because small countries have less land, but the larger counties had more confirmed cases than the smaller countires. It would need to be looked into further to find the exact effect of population density on the COVID cases. This trend continued when looking at the min, max, and sd.</strong></p>
+</div>
+<div id="part-1-tidying-data" class="section level2">
+<h2>Part 1: Tidying Data</h2>
+<pre class="r"><code>table2 %&gt;% pivot_longer(contains(&quot;_&quot;)) %&gt;% separate(name, into = c(&quot;Statistic&quot;, 
+    &quot;Summary&quot;), sep = &quot;_&quot;) %&gt;% pivot_wider(names_from = &quot;Statistic&quot;, 
+    values_from = &quot;value&quot;)</code></pre>
+<pre><code>## # A tibble: 10 x 4
+##    Population..2020. Summary Density..P.Km.. Confirmed
+##    &lt;chr&gt;             &lt;chr&gt;             &lt;dbl&gt;     &lt;dbl&gt;
+##  1 Large             mean               152.   504137.
+##  2 Large             sd                 207.  1311103.
+##  3 Large             min                  3       509 
+##  4 Large             max               1265   6933548 
+##  5 Large             n                   49        54 
+##  6 Small             mean               310.    31144.
+##  7 Small             sd                1064.    56615.
+##  8 Small             min                  2        10 
+##  9 Small             max               8358    449903 
+## 10 Small             n                   89       109</code></pre>
+<pre class="r"><code>table3 &lt;- table2 %&gt;% pivot_longer(contains(&quot;_&quot;)) %&gt;% separate(name, 
+    into = c(&quot;Statistic&quot;, &quot;Summary&quot;), sep = &quot;_&quot;) %&gt;% pivot_wider(names_from = &quot;Statistic&quot;, 
+    values_from = &quot;value&quot;)</code></pre>
+<p><strong>I chose to tidy table 2 to make it longer. In order to do this I used the function, pivot_longer, which separated the variable (density or confirmed) from the type of summary statistic that each described. With this, there was a column with the variables and a column with the name of the summary statistics. I then used pivot_wider in order to move the variable column to correspond to the column name of the actual values. This left the table with a column for the name of the summary statistics, the population density, and the confirmed cases. The last two column hold the values of the summary statistics.</strong></p>
+</div>
+<div id="part-4-visualizing-data" class="section level2">
+<h2>Part 4: Visualizing Data</h2>
+<pre class="r"><code>cormat &lt;- realcovid %&gt;% select_if(is.numeric) %&gt;% cor(use = &quot;everything&quot;)
+library(reshape2)
+get_upper_tri &lt;- function(cormat) {
+    cormat[lower.tri(cormat)] &lt;- NA
+    return(cormat)
+}
+upper_tri &lt;- get_upper_tri(cormat)
+melted &lt;- melt(upper_tri, na.rm = TRUE)
+library(ggplot2)
+ggplot(data = melted, aes(Var2, Var1, fill = value)) + geom_tile(color = &quot;white&quot;) + 
+    scale_fill_gradient2(low = &quot;purple&quot;, high = &quot;red&quot;, mid = &quot;white&quot;, 
+        midpoint = 0, limit = c(-1, 1), space = &quot;Lab&quot;, name = &quot;Correlation&quot;) + 
+    theme_minimal() + theme(axis.text.x = element_text(angle = 30, 
+    vjust = 1, size = 10, hjust = 1)) + coord_fixed() + ggtitle(&quot;Correlation  Between COVID19 and Population by Country&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" />
+<strong>Here is the heatmap that shows the correlation between different numeric variables. Net change had a high correlation with the population number, which makes sense becuase it directly affects the population. Confirmed and Population seemed to have a solid correlation as well as confirmed had a solid correlation with Net change. This makes sense because the population number is heavily involved with how much COVID can be transmitted. Confirmed also had a solid correlation with Migrants which means that the more migrants there are, it is observed that there are more confirmed cases. One area that was surprising was that appeared that there was no correlation between death and population density and no correlation between death and population density. This is surprising because I was think that as people are closer together, then COVID would have a greater ability to transmit, however this is not reflected in the data.</strong></p>
+<pre class="r"><code>ggplot(data = fakecovid, aes(x = Confirmed, y = Net.Change, color = Population..2020.)) + 
+    geom_point(size = 1) + ggtitle(&quot;Confirmed Cases as a Function of Population Density&quot;) + 
+    xlab(&quot;Net Change in Population&quot;) + ylab(&quot;# of cases&quot;) + theme(legend.position = &quot;right&quot;) + 
+    geom_line(aes(group = Population..2020.), size = 1)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" />
+<strong>This plot shows the net chang in population as a function of number of cases, grouped by size of the country. From this graph it can be seen that the population of larger countries changes more dramatically than smaller countries and that these larger countries also have more confirmed cases. This would make sense because if there is a positive net influx of people into a country that is large, then with more people, there are more possible ways to transmit COVID. On the other hand, the smaller countries have a more stable population and less confirmed cases.</strong></p>
+<pre class="r"><code>ggplot(data = fakecovid, aes(x = Med..Age, y = Mortality.Ratio, 
+    fill = Population..2020.)) + geom_bar(stat = &quot;summary&quot;, fun = mean) + 
+    geom_errorbar(stat = &quot;summary&quot;, width = 0.5) + ggtitle(&quot;Median Age of COVID Cases Related to Mortality Rate and Country Size&quot;) + 
+    ylab(&quot;# of Deaths&quot;) + scale_y_continuous(breaks = seq(from = 0, 
+    to = 20, by = 1)) + scale_fill_discrete()</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" />
+<strong>This graph shows the relationship between the median age of a country, the number of cases, and the size of the country. This graph shows that larger countries have more deaths, and smaller countries have less deaths. Additionally, that large countries and small countries have a pretty wide distribution of median age, which does not appear to have any effect on the number of deaths.</strong></p>
+</div>
+<div id="part-5-dimensionality-reduction" class="section level2">
+<h2>Part 5: Dimensionality Reduction</h2>
+<pre class="r"><code>library(cluster)
+pam3 &lt;- realcovid %&gt;% select(Mortality.Ratio, Population..2020., 
+    Net.Change) %&gt;% scale
+sil_width &lt;- vector()
+for (i in 2:10) {
+    pam_fit &lt;- pam(pam3, k = i)
+    sil_width[i] &lt;- pam_fit$silinfo$avg.width
+}
+ggplot() + geom_line(aes(x = 1:10, y = sil_width)) + scale_x_continuous(name = &quot;k&quot;, 
+    breaks = 1:10)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>pam2 &lt;- realcovid %&gt;% select(Mortality.Ratio, Population..2020., 
+    Net.Change) %&gt;% scale %&gt;% pam(2)
+pam2</code></pre>
+<pre><code>## Medoids:
+##    ID Mortality.Ratio Population..2020.  Net.Change
+## 36 36       1.2131011       -0.04600185 -0.09939151
+## 79 79      -0.2671665       -0.21505688 -0.26923994
+## Clustering vector:
+##   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20 
+##   1   1   2   1   2   2   2   2   2   1   2   2   2   1   2   2   1   2   2   1 
+##  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40 
+##   1   1   2   2   2   2   1   2   2   2   1   2   2   2   2   1   2   2   2   1 
+##  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59  60 
+##   2   2   2   2   1   2   2   2   2   2   1   2   2   2   1   2   2   2   2   2 
+##  61  62  63  64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79  80 
+##   2   1   1   1   2   2   1   2   2   2   2   2   2   2   1   1   2   2   2   2 
+##  81  82  83  84  85  86  87  88  89  90  91  92  93  94  95  96  97  98  99 100 
+##   2   2   2   1   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2   2 
+##  [ reached getOption(&quot;max.print&quot;) -- omitted 66 entries ]
+## Objective function:
+##     build      swap 
+## 0.7243970 0.7187608 
+## 
+## Available components:
+##  [1] &quot;medoids&quot;    &quot;id.med&quot;     &quot;clustering&quot; &quot;objective&quot;  &quot;isolation&quot; 
+##  [6] &quot;clusinfo&quot;   &quot;silinfo&quot;    &quot;diss&quot;       &quot;call&quot;       &quot;data&quot;</code></pre>
+<pre class="r"><code>plot(pam2, which = 2)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-10-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>library(GGally)
+yay &lt;- realcovid %&gt;% select(Mortality.Ratio, Population..2020., 
+    Net.Change) %&gt;% mutate(cluster = pam2$clustering)
+ggplot(yay, aes(x = Mortality.Ratio, y = Population..2020., color = cluster)) + 
+    geom_point()</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-10-3.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(yay, aes(x = Mortality.Ratio, y = Net.Change, color = cluster)) + 
+    geom_point()</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-10-4.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(yay, aes(x = Net.Change, y = Population..2020., color = cluster)) + 
+    geom_point()</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-10-5.png" width="672" style="display: block; margin: auto;" /></p>
+<p><strong>The first chunk of code was used in order to find the silhouette width, which is the how close together the variables are and how separated the clusters are. The ggplot generates a graph with sil_widths on it for different numbers of clusters. The clusters with the highest sil_width are the most separated with the points within them being very close. For the three variables used (mortality rate, population, and net change), the highest sil_width was found at 2 clusters, meaning this is the ideal number of clusters for the data.</strong></p>
+<p><strong>Then, through the use of pam, the two clusters were formed, and a plot was generated in order to assess the strength of the associations. This number was found to be 0.59, which indicates that a reasonable structure has been found (goodness of fit). Then, the different variables were plotted against each other in their clusters and it allows the clusters to be characterized. The light blue cluster has a smaller mortality rate, a larger net change, and almost the same population as the other cluster. The dark blue cluster has about the same population size as teh other cluster, a larger mortality rate, and a smaller net change. These were found from the ggplots.</strong></p>
+<P style="page-break-before: always">
+<div style="page-break-after: always;"></div>
+<pre class="r"><code>## paste this chunk into the ```{r setup} chunk at the top of
+## your project 1 .Rmd file
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = &quot;center&quot;, 
+    warning = F, message = F, tidy = TRUE, tidy.opts = list(width.cutoff = 60), 
+    R.options = list(max.print = 100))</code></pre>
+<p>…</p>
 </div>
 
             

@@ -5,24 +5,24 @@
     <link>/project/</link>
     <description>Recent content in Projects on Julia Dickerson</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-US</language>
-    <lastBuildDate>Tue, 01 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="/project/index.xml" rel="self" type="application/rss+xml" />
+    <language>en-US</language><atom:link href="/project/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Project 1</title>
+      <title>Project 1: Exploratory Data Analysis</title>
       <link>/project/project1/</link>
-      <pubDate>Tue, 01 Dec 2020 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/project/project1/</guid>
-      <description> Test Project 1  </description>
+      <description>##Julia Dickerson ##jed3458
+Data Wrangling and Data Exploration library(tidyverse) covid &amp;lt;- read.csv(&amp;quot;~/global_covid19_mortality_rates.csv&amp;quot;, header = TRUE) pop &amp;lt;- read.csv(&amp;quot;~/population_by_country_2020.csv&amp;quot;, header = TRUE)  Introduction  Write a narrative introductory paragraph or two describing the datasets you have chosen, the variables they contain, how they were acquired, and why they are interesting to you. Expand on potential associations you may expect, if any.  For this project I chose two datasets, the first had information based off of COVID19 statistics that were found in 2020 grouped by country.</description>
     </item>
     
     <item>
-      <title>Project 2</title>
+      <title>Project 2: Modeling, Testing, and Predicting</title>
       <link>/project/project2/</link>
-      <pubDate>Tue, 01 Dec 2020 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/project/project2/</guid>
-      <description> Test Project 2  </description>
+      <description>Modeling Introduction: library(tidyverse) heart &amp;lt;- read.csv(&amp;quot;heart.csv&amp;quot;) dim(heart) ## [1] 303 14 df=subset(heart, select = -c(slp, caa, output, thall)) dim(df) ## [1] 303 10 The dataset that I have chosen is the heart health condition of a subset of patients. The variables are age, sex, cp, trtbps, chol, fbs, restecg, thalachh, exng, and oldpeak. The age represents the age of the patient, the gender represents either 1 or 0, cp represents the chest pain (1=typical angina, 2=atypical angina, 3=non-anginal pain, and 4=asymptomatic), trtbps represents the resting blood pressure in mmHg, chol represents the cholesterol level in mg/dl, fbs represents fasting blood pressure (whether it is over 120 mg/dl, 1= true, 0=false), restecg represents resting electrocardiograph result (0=normal, 1= abnormal ST-T wave abnormality, 2= showing left ventricle hypertrophy), thalachh represents maximum heart rate achieved, exng represents the exercised induced angina (1=True, 0=False), and the oldpeak represents the previous peak.</description>
     </item>
     
   </channel>

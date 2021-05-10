@@ -1,8 +1,190 @@
 ---
-title: "Project 1"
-author: "Me"
-date: "2020-12-01"
-output: html_document
+title: 'Project 1: Exploratory Data Analysis'
+author: "SDS348"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: no
 ---
 
-## Test Project 1
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+##Julia Dickerson 
+##jed3458
+
+## Data Wrangling and Data Exploration
+
+```{R}
+library(tidyverse)
+covid<-read.csv("~/global_covid19_mortality_rates.csv", header = TRUE)
+pop<- read.csv("~/population_by_country_2020.csv", header = TRUE)
+
+```
+
+## Introduction 
+- Write a narrative introductory paragraph or two describing the datasets you have chosen, the variables they contain, how they were acquired, and why they are interesting to you. Expand on potential associations you may expect, if any.
+
+**For this project I chose two datasets, the first had information based off of COVID19 statistics that were found in 2020 grouped by country. The other dataset that I used was a dataset that had population information for each country. The COVID dataset was acquired by aggregating three datasets together that contained information on COVID19. The population dataset was downloaded from a site called Worldometer, which provides information on all of the countries in the world. Additionally, they used web scraping techniques to create and tidy the dataset.**
+
+**The variables within the COVID19 dataset are Deaths from COVID, Confirmed Cases, Mortality Ratio, country, country code, latitude and longitude. The variables that were found in the population dataset were the population of each country, the yearly change, the net change, the density of population per km, the land area, the net migrants, the fertilization rate, the median age, the urban population, and the world share.**
+
+**The reason that these datasets stood out to me is because it seemed to me that population would have a big impact on how COVID would spread in a country. The variables like Urban population and density of the population seemed as though they would have a positive correlation with COVID cases and deaths. The reason for this is because the more people there are and the more closely they are associated with each other point toward increased COVID cases. Another association I would predict would be that the smaller the population, the less cases there would be because there are simply less people and less chances of transmission. Another association that could occur would be that the more migrants a country has the more likely it is that COVID could be brought into a country.**
+
+## Part 2: Joining Datasets 
+```{R}
+pop2<-pop%>%rename(Country= Country..or.dependency.)
+fullcovid <- right_join(pop2, covid, ID="Country")
+realcovid<- fullcovid%>%na.omit()
+uncommon<- anti_join(pop2, covid)
+glimpse(uncommon)
+dropped<-uncommon%>% select(Country)
+glimpse(dropped)
+```
+
+**In order to join the two datasets I chose to do a right_join because I wanted to keep all of the variables in the COVID dataset and only bring in the information from the population dataset that would correspond to the pre-existing variables in the COVID dataset. More specifically, the population dataset had data on different territories as well as countries, but I only wanted to focus on countries. So, the data that was dropped was the territories in the population dataset as well as countries that did not have the relevant population statistics. This turned out to be 74 variables, including North Korea, Puerto Rico, ect. I also joined the two datasets by country as this was their only variable in common. I also conducted an anti_join to vizualize the countries and territories that were dropped. The issue with these variables being dropped is that it may skew the data to come to one conclusion, like that there is no correlation between variabes, but witht the extra information it could change this.** 
+
+## Part 3a: Using the 6 dplyr functions
+```{R}
+realcovid%>% group_by(Med..Age)%>% select(Mortality.Ratio)%>%arrange(desc(Med..Age))
+realcovid%>% group_by(Med..Age)%>% select(Mortality.Ratio)%>%arrange(desc(Mortality.Ratio))
+realcovid%>% group_by(Country)%>%summarise(Confirmed)%>%arrange(desc(Confirmed))
+realcovid%>% group_by(Country)%>%summarise(Density..P.Km..)%>%arrange(desc(Density..P.Km..))
+realcovid%>%filter(Country=="Singapore")%>%select(Confirmed, Population..2020.)
+57639/5858322	
+realcovid%>% filter(Country=="United States")%>%select(Confirmed, Mortality.Ratio)
+mutated<-realcovid%>%mutate(propotion_death= Population..2020. *Mortality.Ratio/100)
+glimpse(mutated)
+
+```
+**When using the dplyr functions, I first grouped by median age and then selected for Mortality Ratio. I did this with the idea in mind that countries with older populations would have higher mortality rates, however when looking at the data generated. This was not the case. When it was arranged by descending median age it was found that all of the highest ages had relatively low mortality rates. This indicates that another factor may be in play. Also, when arranged by descending mortality ratio, it was found that although there were older populations with high mortality rates, there were also younger populations who had just as high if not higher mortality rates.**
+
+**I then grouped by country and arranged the data by descending Confirmed cases. I did this in order to visualize what countries were leading in COVID cases. The country with the most cases was the United States, and the next highest was India.I was thinking that the countries with the highest number of cases would also have the highest population density. I also summarized the data by descending population density when grouped by country and found that Singapore had the highest density. Then I filtered the data to only include Signapore and selected the confirmed cases and the population. I found that only about 0.9% of the population of Singapore was confirmed to have COVID even with the highest population density. Lastly, I looked back at the US by filtering the data and selecting the Confirmed cases and the mortality rate. Because the US has a high Confirmed cases variable, it would have made sense if the mortality rate was also high, but it was actually only about 2.91%. This may be due to other factors like quality of healthcare.**
+
+**The last function I did was to add a column to the dataset by using mutate to add a column that multipled the population of the countries by the mortality rate. I did this in order to showcase that if everyone in the country got COVID, then this would be the expected deaths due to the infection.**
+
+## Part 3b: Creating Summary Statistics Using group_by and summarize
+
+```{R}
+fakecovid<- fullcovid%>%na.omit()
+fakecovid$Population..2020.[realcovid$Population..2020.<=19999999]<-"Small"
+fakecovid$Population..2020.[realcovid$Population..2020. >=20000000]<-"Large"
+fakecovid%>%group_by(Population..2020.=="Small")%>%summarise(mean(Mortality.Ratio))
+fakecovid%>%group_by(Population..2020.=="Large")%>%summarise(mean(Confirmed))
+fakecovid%>%group_by(Population..2020.=="Large")%>%summarize(mean(as.numeric(Med..Age)))
+fakecovid%>%group_by(Population..2020.=="Large")%>%summarize(mean(as.numeric(Urban.Pop..)))
+
+fakecovid%>%summarise(max(Deaths))
+fakecovid%>%summarise(min(Deaths))
+fakecovid%>%group_by(Country)%>% filter(Deaths=="0")%>%summarise(Deaths, Population..2020.)
+
+
+```
+**Here, I dichotamized the Population variable to make it categorical. Small countries were defined as having a population under 20 million and large countries were defined as having a population of over 20 million. I then used summarize and group to find the mean, sd, min, max of some of the variables just for better visualization. With this, I found that there were countries that had zero deaths from COVID (the min was 0 found by the summarize function), and so then I filtered the data for countries that had zero deaths, and found that there were 9 countries that had not had any deaths from COVID; Bhatan, Cambodia, Eritrea, Grenada, Laos, Mongolia, St. Lucia, Seychelles, and Timor-Leste. Interestingly, they were all small countries.**
+
+##Summary Statistic Tables 
+
+```{R}
+fakecovid%>%summarize_if(is.numeric,list(mean=mean, sd=sd, min=min, max=max,n_distinct=n_distinct))
+table1<-fakecovid%>%summarize_if(is.numeric,list(mean=mean, sd=sd, min=min, max=max,n_distinct=n_distinct))
+print(table1)
+table2<-fakecovid%>%group_by(Population..2020.)%>%select(Density..P.Km.., Confirmed)%>%summarise_if(is.numeric,list(mean=mean, sd=sd, min=min, max=max,n_distinct=n_distinct))
+print(table2)
+```
+
+**Here, I used the summarize_if function in order to group all of the numeric variables into a table, and then took the mean, standard deviation, minimum, maximum, and the distinct values in those variables. The Net change was 461107.2	 meaning that on average each country is increasing/decreasing by this amount. It was also found that the average amount of migrants was 1078.964, meaning that there are 1078.964 different instances in which COVID could be introduced to a country. The confirmed cases mean was 187858.5. The mean of deaths was 5603.476. Comparing the last two statistics, it seems that the average resilience of the populations on average is pretty strong. The stadard deviations were as follows; 1307960	(net change), 879.5998 (Density of population), 1967662	(land area), 132665.1	(migrants), 783952.3 (Confirmed), 21441.21 (deaths), and 2.911636	(Mortality.Ratio). This is all just the variation from the average. The minimum Net change was -383840, meaning that the population is decreasing and the maximum was 13586631, which indicates a growing country, and a growing risk for COVID. The maximum confirmed cases was 6933548 and the maximum deaths was 201884, which indicates that the mortality rate is not high mostly. However, the maximum mortality rate was found to be 28.88%, which shows that there are other factors other than population that affect the mortality rate that should be explored.**
+
+**In the second table, which was created by grouping by country size and summarizing the mean, sd, max, min, and n_distinct for density of population and confirmed cases. This was made in order to see if there was a correlation between the three factors. Large countries actually had a smaller mean density than did small countries, which makes sense because small countries have less land, but the larger counties had more confirmed cases than the smaller countires. It would need to be looked into further to find the exact effect of population density on the COVID cases. This trend continued when looking at the min, max, and sd.**
+
+## Part 1: Tidying Data 
+
+```{R}
+table2%>%pivot_longer(contains("_")) %>% separate(name,into=c("Statistic", "Summary"), sep = "_")%>%pivot_wider(names_from = "Statistic",values_from="value")
+
+table3<-table2%>%pivot_longer(contains("_")) %>% separate(name,into=c("Statistic", "Summary"), sep = "_")%>%pivot_wider(names_from = "Statistic",values_from="value")
+```
+**I chose to tidy table 2 to make it longer. In order to do this I used the function, pivot_longer, which separated the variable (density or confirmed) from the type of summary statistic that each described. With this, there was a column with the variables and a column with the name of the summary statistics. I then used pivot_wider in order to move the variable column to correspond to the column name of the actual values. This left the table with a column for the name of the summary statistics, the population density, and the confirmed cases. The last two column hold the values of the summary statistics.**
+
+
+## Part 4: Visualizing Data
+
+```{R}
+cormat <- realcovid%>% select_if(is.numeric) %>% cor(use = "everything")
+library(reshape2)
+get_upper_tri <- function(cormat){cormat[lower.tri(cormat)]<- NA 
+return(cormat)}
+upper_tri <- get_upper_tri(cormat)
+melted<-melt(upper_tri, na.rm = TRUE)
+library(ggplot2)
+ggplot(data = melted, aes(Var2, Var1, fill = value))+ geom_tile(color = "white")+ scale_fill_gradient2(low =  "purple", high = "red", mid = "white", midpoint = 0, limit = c(-1,1), space = "Lab", name="Correlation") + theme_minimal()+ theme(axis.text.x = element_text(angle = 30, vjust = 1, size = 10, hjust = 1))+coord_fixed()  + ggtitle("Correlation  Between COVID19 and Population by Country")
+
+```
+**Here is the heatmap that shows the correlation between different numeric variables. Net change had a high correlation with the population number, which makes sense becuase it directly affects the population. Confirmed and Population seemed to have a solid correlation as well as confirmed had a solid correlation with Net change. This makes sense because the population number is heavily involved with how much COVID can be transmitted. Confirmed also had a solid correlation with Migrants which means that the more migrants there are, it is observed that there are more confirmed cases. One area that was surprising was that appeared that there was no correlation between death and population density and no correlation between death and population density. This is surprising because I was think that as people are closer together, then COVID would have a greater ability to transmit, however this is not reflected in the data.**
+
+
+
+```{R}
+ggplot(data = fakecovid, aes(x = Confirmed, y = Net.Change, color= Population..2020.)) + geom_point(size=1) + ggtitle("Confirmed Cases as a Function of Population Density") + xlab("Net Change in Population") + ylab("# of cases")+ theme(legend.position = "right") + geom_line(aes(group = Population..2020.), size = 1)
+```
+**This plot shows the net chang in population as a function of number of cases, grouped by size of the country. From this graph it can be seen that the population of larger countries changes more dramatically than smaller countries and that these larger countries also have more confirmed cases. This would make sense because if there is a positive net influx of people into a country that is large, then with more people, there are more possible ways to transmit COVID. On the other hand, the smaller countries have a more stable population and less confirmed cases.**
+
+```{R}
+ggplot(data=fakecovid, aes(x =Med..Age , y= Mortality.Ratio, fill=Population..2020.)) + geom_bar(stat="summary", fun=mean) + geom_errorbar(stat = "summary", width=.5) + ggtitle("Median Age of COVID Cases Related to Mortality Rate and Country Size") + ylab("# of Deaths")  + scale_y_continuous(breaks = seq(from = 0, to = 20, by = 1)) + scale_fill_discrete() 
+```
+**This graph shows the relationship between the median age of a country, the number of cases, and the size of the country. This graph shows that larger countries have more deaths, and smaller countries have less deaths. Additionally, that large countries and small countries have a pretty wide distribution of median age, which does not appear to have any effect on the number of deaths.**
+
+
+
+## Part 5: Dimensionality Reduction
+
+```{R}
+library(cluster) 
+pam3<- realcovid %>% select(Mortality.Ratio, Population..2020., Net.Change)%>%scale 
+sil_width<-vector()
+for(i in 2:10){    
+  pam_fit <- pam(pam3, k = i)    
+  sil_width[i] <- pam_fit$silinfo$avg.width}
+ggplot()+ geom_line(aes(x=1:10, y=sil_width)) +scale_x_continuous(name="k",breaks=1:10)
+pam2 <-realcovid %>% select(Mortality.Ratio, Population..2020., Net.Change) %>% scale %>% pam(2)
+pam2
+plot(pam2, which=2)
+
+library(GGally)
+yay<-realcovid %>% select(Mortality.Ratio, Population..2020., Net.Change)%>% mutate(cluster=pam2$clustering)
+ggplot(yay, aes(x=Mortality.Ratio,y=Population..2020., color=cluster))+geom_point()
+ggplot(yay, aes(x=Mortality.Ratio,y=Net.Change, color=cluster))+geom_point()
+ggplot(yay, aes(x=Net.Change,y=Population..2020., color=cluster))+geom_point()
+```
+
+**The first chunk of code was used in order to find the silhouette width, which is the how close together the variables are and how separated the clusters are. The ggplot generates a graph with sil_widths on it for different numbers of clusters. The clusters with the highest sil_width are the most separated with the points within them being very close. For the three variables used (mortality rate, population, and net change), the highest sil_width was found at 2 clusters, meaning this is the ideal number of clusters for the data.**
+
+**Then, through the use of pam, the two clusters were formed, and a plot was generated in order to assess the strength of the associations. This number was found to be 0.59, which indicates that a reasonable structure has been found (goodness of fit). Then, the different variables were plotted against each other in their clusters and it allows the clusters to be characterized. The light blue cluster has a smaller mortality rate, a larger net change, and almost the same population as the other cluster. The dark blue cluster has about the same population size as teh other cluster, a larger mortality rate, and a smaller net change. These were found from the ggplots.**  
+
+
+<P style="page-break-before: always">
+\newpage
+
+
+```{r eval=F}
+## paste this chunk into the ```{r setup} chunk at the top of your project 1 .Rmd file
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+
+
+
+...
+
+
+
+
+

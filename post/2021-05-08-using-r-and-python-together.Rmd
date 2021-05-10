@@ -1,0 +1,49 @@
+---
+title: Reticulate; Using R and Python Together!
+author: Julia Dickerson
+date: '2021-05-08'
+slug: using-r-and-python-together
+categories: []
+tags: []
+description: ''
+---
+There is a lot of debate on whether R studio or Python is better, but why not get the best of both worlds and use both together? 
+
+Reticulate is a handy tool that can translate the data type from one environment to another environment for a different data type. For instance, R to python or vice versa. 
+
+So let's get an example of reticulate at work!
+
+here's how it works: 
+You first download the library reticulate and then insert your code into an R chunk. 
+
+```{R}
+library(reticulate)
+
+project<-"This is my project 3"
+```
+
+Then you go into a python chunck and get it to return the same code that you made in the R chunk. 
+
+```{python}
+project="blog post"
+print(r.project,project)
+```
+
+And ta-da! I was able to combine information from R with information to python and get it as an output in python!
+
+You can execute the same thing in an R chunk as well...
+
+```{R}
+cat(c(project,py$project))
+```
+
+And you get the same output, pretty cool!
+
+![](/img/reticulated_python.png)
+
+
+
+
+
+
+

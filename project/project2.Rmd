@@ -1,8 +1,300 @@
 ---
-title: "Project 2"
-author: "Me"
-date: "2020-12-01"
-output: html_document
+title: 'Project 2: Modeling, Testing, and Predicting'
+author: "SDS348"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
 ---
 
-## Test Project 2
+```{r setup, include=FALSE}
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,fig.align="center",warning=FALSE,message=FALSE,fig.width=8, fig.height=5, linewidth=60)
+options(tibble.width = 100,width = 100)
+library(tidyverse)
+
+class_diag <- function(probs,truth){ 
+  #CONFUSION MATRIX: CALCULATE ACCURACY, TPR, TNR, PPV 
+  if(is.character(truth)==TRUE) truth<-as.factor(truth) 
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1 
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),factor(truth, levels=c(0,1))) 
+  acc=sum(diag(tab))/sum(tab) 
+  sens=tab[2,2]/colSums(tab)[2] 
+  spec=tab[1,1]/colSums(tab)[1] 
+  ppv=tab[2,2]/rowSums(tab)[2] 
+  
+#CALCULATE EXACT AUC 
+  ord<-order(probs, decreasing=TRUE) 
+  probs <- probs[ord]; truth <- truth[ord] 
+  TPR=cumsum(truth)/max(1,sum(truth))  
+  FPR=cumsum(!truth)/max(1,sum(!truth)) 
+  dup <-c(probs[-1]>=probs[-length(probs)], FALSE) 
+  TPR <-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1) 
+  n <- length(TPR) 
+  auc <- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n])) 
+  data.frame(acc,sens,spec,ppv,auc) 
+}
+```
+
+# Modeling
+
+## Introduction: 
+
+```{R}
+library(tidyverse)
+heart <- read.csv("heart.csv")
+dim(heart)
+df=subset(heart, select = -c(slp, caa, output, thall))
+dim(df)
+```
+
+**The dataset that I have chosen is the heart health condition of a subset of patients. The variables are age, sex, cp, trtbps, chol, fbs, restecg, thalachh, exng, and oldpeak. The age represents the age of the patient, the gender represents either 1 or 0, cp represents the chest pain (1=typical angina, 2=atypical angina, 3=non-anginal pain, and 4=asymptomatic), trtbps represents the resting blood pressure in mmHg, chol represents the cholesterol level in mg/dl, fbs represents fasting blood pressure (whether it is over 120 mg/dl, 1= true, 0=false), restecg represents resting electrocardiograph result (0=normal, 1= abnormal ST-T wave abnormality, 2= showing left ventricle hypertrophy), thalachh represents maximum heart rate achieved, exng represents the exercised induced angina (1=True, 0=False), and the oldpeak represents the previous peak. The number of variables is 14 and the number of observations is 303. There were 4 columns with no explanation for what the variables meant, therefore I took them out and reduced the number of variables to 10 instead of 14, the number of observations stayed the same. For reference an angina is a reduced flow of blood to the heart that causes pain and is a symptom of coronary heart disease and an risk factor for heart attacks.**
+
+## Part 1 : MANOVA test 
+
+```{R}
+#MANOVA
+man1 <- manova(cbind(thalachh, chol, trtbps, age)~cp, data=df)
+summary(man1)
+summary.aov(man1)
+df%>%group_by(cp)%>%summarize(mean(chol),mean(thalachh), mean(trtbps), mean(age))
+
+#ANOVA 
+summary(aov(thalachh~cp,data=df))
+summary(aov(chol~cp,data=df))
+summary(aov(trtbps~cp,data=df))
+summary(aov(age~cp,data=df))
+
+#post-hoc pairwise t.test
+pairwise.t.test(df$thalachh,df$cp, p.adj="none")
+
+#Type I Error 
+1-.95^11
+1-.95^29
+
+#Adjusted pairwise t-test
+pairwise.t.test(df$thalachh,df$cp, p.adj='bonf')
+```
+
+**The null hypothesis for the MANOVA test is that the means for all of the variables are equal. Looking a the p-value for the MANOVA there is at least one variable is significant from thalachh, chol, trtbps, age based on chest pain because the p-value is 2.038e-06. I chose to test the thalachh variable because it would seem that the harder your heart works, the more likely anginal pain is. I chose cholesterol because as cholesterol increases it decreases heart health. I chose trtbps because it would seem that the higher the blood pressure is, the less likely that anginal pain will be experienced. Lastly, I chose the age variable because the heart gets weaker as people age.Then ANOVA tests were performed. The null hypothesis for ANOVA tests is that there is no difference in means.The alternative hypothesis is that there was variance in the means. The only variable that ended up being significant was thalachh, maximum heart rate achieved, with a p-value of 1.56e-07. This means that we reject the null for the thalachh variable. The t.tests were then performed on the thalachh variable in order to see which group of chest pain they differed on. The conditions of chest pain that differed on the maximum heart rate achieved were 0 and 1, 0 and 2, and 0 and 3. The number of tests that were performed was 11, meaning that there was a  0.4311999 ( 43.11999%) chance of Type I error. If all of the variables tested were significant, then 29 tests would have been performed and this would have cause the chance that Type I error occurred to increase to 0.7740645. Then the bonferroni correction was used and it was found that the differing in chest pain in groups 3 and 0 was no longer significant and the other two remained significant. The mean in thalachh for group 0 was 140.5385, and in group 1 162.4200, and in group 2 it was 155.6092. MANOVA assumptions are that there is a random sample and independent observations, there is multivariate normality, there is homogeneity of within-group covariance matrices, there is a linear relationships among DVs, there are no extreme univariate or multivariate outliers, and there should be no multicollinearity. These assumptions are not likely to have been met because this dataset was gotten from one group of people from one hospital, therefore this is not a true random sample, as well as it is probable that these variables that are being analyzed are related to each other because they are all closely related to whether someone will have a heart attack or not. In short, the assumptions are not met.**
+
+## Part 2: Randomization Test: Mean Differences 
+```{R}
+set.seed(348)
+df%>%group_by(fbs)%>%summarize(means=mean(chol))%>%summarize(diff(means))
+
+rand_dist<-vector()
+for(i in 1:5000){
+new<-data.frame(chole=sample(df$chol),condition=df$fbs)
+rand_dist[i]<-mean(new[new$condition=="0",]$chole)-
+mean(new[new$condition=="1",]$chole)
+}
+mean(rand_dist< -1.934367 | rand_dist> 1.934367 )
+
+{hist(rand_dist,main="null distribution",ylab="y"); abline(v = c(-1.934367, 1.934367),col="red")}
+
+```
+**For this part I did a randomization test to see if there was a significant difference between the groups of patients with fasting blood pressures of either less than or greater than 120 mg/dl based on the means of the cholesterol. I chose these two variables because cholesterol is known to increase blood pressure. The null hypothesis is that there is no variance in the means of cholesterol among the groups. The alternate hypothesis is that there is a variance between the groups mean cholesterol. From the results it was found that there was a p-value of 0.8144 which means that we fail to reject the null hypothesis. The mean difference that was found when not randomized was 1.934367 between the groups that had <120 mg/dl and >120mg/dl. This result could have been due to the small sample size and if further observations were conducted the outcome of this test might be different.**
+
+## Part 3: Linear Regression Model 
+
+```{R}
+df2<-df %>% mutate(trtbps_c=trtbps - mean(trtbps,na.rm=T))
+df3<-df2 %>% mutate(age_c=age - mean(age,na.rm=T))
+df4<-df3%>%mutate(cp=recode(cp,"0"="Angina", "1"="Typical", "2"="Non-Anginal", "3"="Asymptomatic"))
+coef(lm(chol~age_c*cp,data=df4))
+summary(lm(chol~age_c*cp,data=df4))
+
+df4 %>% select(chol, age, cp) %>% ggplot(aes(age, chol, color=cp)) + 
+geom_point()+geom_smooth(method="lm") + geom_vline(xintercept=mean(df4$age,na.rm=T),lty=2)
+
+```
+
+**The linear regression was run using the  variables of age and cp on chol. The intercept would be the group of people that experience chest pain due to Angina. For every 1-unit increase in Angina group cholesterol, it is predicted that age goes up by 0.49945 years for this group. Patients in the Asymptomatic group with zero age have predicted cholesterol that is -13.64845 lower than Angina group with zero age. Patients in the Non-Anginal group with zero age have predicted cholesterol that is -4.53639 lower than Angina group with zero age. Patients in the Typical group with zero age have predicted cholesterol that is  -0.04977 lower than Angina group with zero age. Slope of Asymptomatic group on cholesterol for age is 0.37086  greater than for Angina group. Slope of Non-Anginal group on cholesterol for age is 1.57547 greater than for Angina group. Slope of Typical group on cholesterol for age is 1.04423 greater than for Angina group. The mean predicted cholesterol for Anginal group was  249.47061. The amount of variation that is explained is 0.06477 or 6.477% of the variatin. This was found to be the R squared value.**
+
+
+
+#### Heteroskedasticity, Lineariyt, and Normality Tests
+```{R}
+ggplot(df4,aes(chol,age,color=cp))+geom_point()
+
+resids<-lm(chol~age_c*cp, data=df4)$residuals
+fitted<-lm(chol~age_c*cp, data=df4)$fitted.values
+ggplot()+geom_point(aes(fitted,resids))
+
+ggplot()+geom_histogram(aes(resids), bins=20)
+
+```
+**From the first two graph it is clear that there is not a fanning out pattern so this means that there is no heteroskedasticity. Also from the graph it can be seen that there is some linearity. For the most part the distribution looks fairly normal with exception of one outlier on the right. **  
+
+
+
+#### Robust Linear Regression Test 
+```{R}
+library(sandwich); library(lmtest)
+moo<-lm(chol~age_c*cp,data=df4)
+summary(moo)
+coeftest(moo, vcov = vcovHC(moo))
+```
+**With the robust test it was found that the only significant effect was that of the interaction between age and Non-Anginal group patients. The null hypothesis was that there is equal variance between the points of Non-Anginal and Anginal. This null hypothesis is rejected. There were no changes in significance between the robust test and the test performed previously. Every other group had a non-significant p-value as well as the their interactions with age and the different groups were found to be insignificant.**
+
+## Part 4: Bootstrapping
+
+```{R}
+
+samp_distn<-replicate(5000, {
+boot_dat <- sample_frac(df4, replace=T) 
+fit <- lm(chol~age_c+cp, data=boot_dat) 
+coef(fit) 
+})
+
+samp_distn %>% t %>% as.data.frame %>% summarize_all(sd)
+
+```
+
+**The SE for the Asymptomatic group was found to be 8.172967 which was less than the robust and the original SEs (11.52821), meaning that the p-value also decreased. The SE for the Non-Anginal group was found to be larger than the SE from the robust and the original, meaning that the p-value increased. The SE for the Typical group decreased slightly from the robust and the original, meaning that the p-value decreased. The standard error for the Aginal group increased compared to the robust and original, meaning that the p-value would have increased. The age standard error decreased compared to the robust and original, meaning that the p-value would have decreased.** 
+
+## Part 5: Logistic Regression Model
+
+```{R}
+df6<-df4%>%mutate(y=ifelse(exng=="1",1,0))
+head(data)
+fitlog<-glm(y~age*sex, data=df6, family="binomial")
+summary(fitlog)
+prob<-predict(fitlog, type="response")
+class_diag(prob, df6$y)
+
+exp(-1.480769)
+exp(0.004799)
+exp(-1.031187)
+
+pred<-ifelse(prob>.5,1,0)
+table(prediction = pred, truth=df6$y) %>% addmargins
+
+3/99
+200/204
+3/7
+203/303
+
+df6$logit<-predict(fitlog,type="link")
+ggplot(data=df6, aes(x=logit, group=y, fill=y))+geom_density(adjust=1.5, alpha=.4)+
+  theme(legend.position=c(.85,.85))+geom_vline(xintercept=0)+xlab("logit (log-odds)")+
+  geom_rug(aes(logit,color=y))+
+  geom_text(x=-5,y=.07,label="TN = 431")+
+  geom_text(x=-1.75,y=.008,label="FN = 19")+
+  geom_text(x=1,y=.006,label="FP = 13")+
+  geom_text(x=5,y=.04,label="TP = 220") +ggtitle("Log of the Odds Based on Exercised Induced Angina")
+
+library(plotROC) 
+
+ROCplot<-ggplot(df6)+geom_roc(aes(d=y,m=prob), n.cuts=0)
+ROCplot
+calc_auc(ROCplot)
+```
+**In the logistic regression it was found that age and sex do not have significant effects on exercise induced angina (exng). I thought that these predictors might be good because as you get older your heart gets weaker, as well as there may have been differences based on sex. However, it turned out that these are not very good predictors of exng. Regardless, looking at the statistics the equation e^(-1.480769 + 0.004799*age + -1.031187*sex). The odds that a patient will experience anginal pain during exercise increases by 1.004811 times with age. The odds that a patient will experience anginal pain during exercise increases by 0.3565834 times with gender. At 0 for gender and age the odds of exrcise induced angina is  0.2274627.**
+
+**The confusion matrix was generated and it shows that it incorrectly labels many of the ones who experience pain as not experiencing pain. However, also looking at the matrix, it categorizes those that don't feel pain pretty correctly.**
+
+**The accuracy was 0.669967, the sensitivity was 0.03030303 (TPR), the specificity was 0.9803922 (TNR), and the ppv was 0.4285714, and the AUC was 0.6128441. This model is not very good at predicting when someone did experience anginal pain when exercising based off of there sex and their age. On the other hand, the TNR was very high meaning that it was good at predicting when someone did not experience anginal pain when exercising based on sex and age. The AUC being at around 0.6 means that gender and age are poor predictors of exng.** 
+
+**The ROC plot was plotted and the AUC calculated from it was 0.6128441, this is poor predictor of the exng.** 
+
+## Part 6: Logistic Regression from All Variables 
+```{R}
+fit2<-glm(exng~(.), data=df, family="binomial")
+summary(fit2)
+
+probs<-predict(fit2, type="response")
+class_diag(probs, df$exng)
+
+preds<-ifelse(probs>.5,1,0)
+table(prediction = preds, truth=df$exng) %>% addmargins
+
+```
+**When using all of the variables as predictors, the accuracy was found to be 0.7887789, the sensitivity was found to be 0.5757576, the specificity was found to be 0.8921569, the ppv was found to be 0.721519, and the AUC was found to be 0.8184294. This AUC puts the model in the range of being a god predictor of exng (pain during exercise, the presence ofr absence). From the confusion matrix is can be seen that only 22 people were mis-labled as having pain when they did not have pain and about half of the people who experienced pain were mislabled as not experiencing pain. **
+
+### 10-fold CV
+
+```{R}
+set.seed(1234)
+k=10
+
+data1<-df[sample(nrow(df)),] 
+folds<-cut(seq(1:nrow(df)),breaks=k,labels=F) 
+
+diags<-NULL
+for(i in 1:k){         
+  train1<-data1[folds!=i,]
+  test1<-data1[folds==i,]  
+  
+  truth<-test1$exng
+  
+  fit1<- glm(exng~(.), data=train1, family="binomial")
+  probs<- predict(fit1, newdata=test1, type="response")
+  
+  diags<-rbind(diags,class_diag(probs,truth)) 
+}
+
+summarize_all(diags,mean)
+```
+
+**By doing a CV, it was found that there was a slight decrease in sensitivity (0.5634807), specificity (0.8870333). There was almost no change in accuracy (0.7821505). The ppv increased slightly to 0.7367063. The Accuracy had almost no change. The AUC decreased only slightly from 0.8184294 to 0.8085022, meaning that there was not much over-fitting and that this model is still a good predictor of exng.**
+
+### LASSO and CV
+
+```{R}
+library(glmnet)
+set.seed(1234)
+
+y<-as.matrix(df$exng)
+x<-model.matrix(exng~(.), data = df)[,-1]
+cv.lasso1<-cv.glmnet(x,y,family="binomial")
+lasso1<-glmnet(x,y,family="binomial",alpha=1,lambda=cv.lasso1$lambda.1se)
+coef(lasso1)
+
+lassobro<-df%>%select(cp, thalachh, oldpeak, exng)
+set.seed(1234)
+k=10
+
+data2<-lassobro[sample(nrow(lassobro)),] 
+folds<-cut(seq(1:nrow(lassobro)),breaks=k,labels=F) 
+
+diags<-NULL
+for(i in 1:k){         
+  train<-data2[folds!=i,]
+  test<-data2[folds==i,]  
+  
+  truth1<-test$exng
+  
+  fit3<- glm(exng~., data=train, family="binomial")
+  prob3<- predict(fit3, newdata=test, type="response")
+  
+  diags<-rbind(diags,class_diag(prob3,truth1)) 
+}
+
+summarize_all(diags,mean)
+
+```
+**From the LASSO it is seen that cp, thalachh, and oldpeak are all significant predictors of exng. The AUC for this model is 0.7987544, meaning that it is a fair predictor of exng. This is slightly less than the AUCs in the two models above that were around 0.8. This again suggests that there was a small amount over-fitting in the previous two models.**
+
+...
+
+
+
+
+
